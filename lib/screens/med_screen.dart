@@ -7,7 +7,9 @@ import 'package:path_provider/path_provider.dart';
 import 'package:open_filex/open_filex.dart';
 
 class MedScreen extends StatefulWidget {
-  const MedScreen({super.key});
+  final String token;
+
+  const MedScreen({Key? key, required this.token}) : super(key: key);
 
   @override
   State<MedScreen> createState() => _MedScreenState();
@@ -22,13 +24,19 @@ class _MedScreenState extends State<MedScreen> {
     fetchFiles();
   }
 
+  // Fetch files after passing token
   Future<void> fetchFiles() async {
-    final response = await http.get(Uri.parse('http://192.168.223.154:8000/files/'));
+    final response = await http.get(
+      Uri.parse('http://192.168.223.154:8000/get-user-files'),
+      headers: {
+        'Authorization': 'Bearer ${widget.token}',  // Pass token here
+      },
+    );
 
     if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
+      final responseData = jsonDecode(response.body);
       setState(() {
-        files = List<Map<String, dynamic>>.from(data);
+        files = List<Map<String, dynamic>>.from(responseData['files']);
       });
     } else {
       print("Failed to fetch files: ${response.reasonPhrase}");
@@ -40,26 +48,32 @@ class _MedScreenState extends State<MedScreen> {
     if (result == null || result.files.isEmpty) return;
 
     final file = File(result.files.single.path!);
-    final uri = Uri.parse('http://192.168.223.154:8000/upload/');
+    final uri = Uri.parse('http://192.168.223.154:8000/upload-medical-report');
     final request = http.MultipartRequest('POST', uri);
+
     request.files.add(await http.MultipartFile.fromPath('file', file.path));
+    request.headers['Authorization'] = 'Bearer ${widget.token}';  // Pass token
 
     final response = await request.send();
     if (response.statusCode == 200) {
       print('File uploaded successfully');
-      fetchFiles();
+      fetchFiles();  // Refresh files after upload
     } else {
       print('Failed to upload file');
     }
   }
 
   Future<void> downloadFile(String fileId, String filename) async {
-    final response = await http.get(Uri.parse('http://192.168.223.154:8000/download/$fileId'));
+    final response = await http.get(
+      Uri.parse('http://192.168.223.154:8000/download-medical-report/$fileId'),
+      headers: {
+        'Authorization': 'Bearer ${widget.token}',  // Pass token
+      },
+    );
 
     if (response.statusCode == 200) {
       final bytes = response.bodyBytes;
 
-      // Save to device
       final directory = await getExternalStorageDirectory();
       final file = File('${directory!.path}/$filename');
       await file.writeAsBytes(bytes);
@@ -72,11 +86,16 @@ class _MedScreenState extends State<MedScreen> {
   }
 
   Future<void> deleteFile(String fileId) async {
-    final response = await http.delete(Uri.parse('http://192.168.223.154:8000/delete/$fileId'));
+    final response = await http.delete(
+      Uri.parse('http://192.168.223.154:8000/delete-medical-report/$fileId'),
+      headers: {
+        'Authorization': 'Bearer ${widget.token}',  // Pass token
+      },
+    );
 
     if (response.statusCode == 200) {
       print('File deleted successfully');
-      fetchFiles();
+      fetchFiles();  // Refresh files after deletion
     } else {
       print('Failed to delete file');
     }
@@ -98,25 +117,25 @@ class _MedScreenState extends State<MedScreen> {
                 itemCount: files.length,
                 itemBuilder: (context, index) {
                   final file = files[index];
-                  final isPdf = file['name'].toString().toLowerCase().endsWith('.pdf');
+                  final isPdf = file['filename'].toString().toLowerCase().endsWith('.pdf');
 
                   return Card(
                     child: ListTile(
                       leading: Icon(
-                        isPdf ? Icons.picture_as_pdf : Icons.image,
+                        isPdf ? Icons.picture_as_pdf : Icons.insert_drive_file,
                         color: isPdf ? Colors.red : Colors.blue,
                       ),
-                      title: Text(file['name']),
+                      title: Text(file['filename']),
                       trailing: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           IconButton(
                             icon: const Icon(Icons.download),
-                            onPressed: () => downloadFile(file['id'], file['name']),
+                            onPressed: () => downloadFile(file['file_id'], file['filename']),
                           ),
                           IconButton(
                             icon: const Icon(Icons.delete, color: Colors.red),
-                            onPressed: () => deleteFile(file['id']),
+                            onPressed: () => deleteFile(file['file_id']),
                           ),
                         ],
                       ),

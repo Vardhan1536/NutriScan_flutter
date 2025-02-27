@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
-import 'screens/med_screen.dart';  // Import the MedScreen file
+import 'screens/login_screen.dart';
+import 'themes/app_theme.dart';
+
 
 void main() {
-  runApp(MyApp());
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -13,11 +15,8 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Medical Reports App',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-        visualDensity: VisualDensity.adaptivePlatformDensity,
-      ),
-      home: MedScreen(),  // Show MedScreen on app launch
+      theme: AppTheme.lightTheme,
+      home: LoginScreen(), // Updated to RegisterScreen
     );
   }
 }
