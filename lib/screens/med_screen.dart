@@ -4,7 +4,8 @@ import 'package:file_picker/file_picker.dart';
 import 'dart:convert';
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
-import 'package:open_filex/open_filex.dart';
+
+import 'scan_screen.dart';  // Import the ScanScreen here
 
 class MedScreen extends StatefulWidget {
   final String token;
@@ -24,12 +25,11 @@ class _MedScreenState extends State<MedScreen> {
     fetchFiles();
   }
 
-  // Fetch files after passing token
   Future<void> fetchFiles() async {
     final response = await http.get(
-      Uri.parse('http://192.168.223.154:8000/get-user-files'),
+      Uri.parse('http://192.168.255.154:8000/get-user-files'),
       headers: {
-        'Authorization': 'Bearer ${widget.token}',  // Pass token here
+        'Authorization': 'Bearer ${widget.token}',
       },
     );
 
@@ -48,16 +48,16 @@ class _MedScreenState extends State<MedScreen> {
     if (result == null || result.files.isEmpty) return;
 
     final file = File(result.files.single.path!);
-    final uri = Uri.parse('http://192.168.223.154:8000/upload-medical-report');
+    final uri = Uri.parse('http://192.168.255.154:8000/upload-medical-report');
     final request = http.MultipartRequest('POST', uri);
 
     request.files.add(await http.MultipartFile.fromPath('file', file.path));
-    request.headers['Authorization'] = 'Bearer ${widget.token}';  // Pass token
+    request.headers['Authorization'] = 'Bearer ${widget.token}';
 
     final response = await request.send();
     if (response.statusCode == 200) {
       print('File uploaded successfully');
-      fetchFiles();  // Refresh files after upload
+      fetchFiles();
     } else {
       print('Failed to upload file');
     }
@@ -65,9 +65,9 @@ class _MedScreenState extends State<MedScreen> {
 
   Future<void> downloadFile(String fileId, String filename) async {
     final response = await http.get(
-      Uri.parse('http://192.168.223.154:8000/download-medical-report/$fileId'),
+      Uri.parse('http://192.168.255.154:8000/download-medical-report/$fileId'),
       headers: {
-        'Authorization': 'Bearer ${widget.token}',  // Pass token
+        'Authorization': 'Bearer ${widget.token}',
       },
     );
 
@@ -79,7 +79,6 @@ class _MedScreenState extends State<MedScreen> {
       await file.writeAsBytes(bytes);
 
       print("File saved to: ${file.path}");
-      OpenFilex.open(file.path);
     } else {
       print('Failed to download file');
     }
@@ -87,18 +86,27 @@ class _MedScreenState extends State<MedScreen> {
 
   Future<void> deleteFile(String fileId) async {
     final response = await http.delete(
-      Uri.parse('http://192.168.223.154:8000/delete-medical-report/$fileId'),
+      Uri.parse('http://192.168.255.154:8000/delete-medical-report/$fileId'),
       headers: {
-        'Authorization': 'Bearer ${widget.token}',  // Pass token
+        'Authorization': 'Bearer ${widget.token}',
       },
     );
 
     if (response.statusCode == 200) {
       print('File deleted successfully');
-      fetchFiles();  // Refresh files after deletion
+      fetchFiles();
     } else {
       print('Failed to delete file');
     }
+  }
+
+  void navigateToScanScreen() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ScanScreen(token: widget.token),
+      ),
+    );
   }
 
   @override
@@ -142,6 +150,16 @@ class _MedScreenState extends State<MedScreen> {
                     ),
                   );
                 },
+              ),
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton.icon(
+              onPressed: navigateToScanScreen,
+              icon: const Icon(Icons.qr_code_scanner),
+              label: const Text('Go to Scan Page'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.green,
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
               ),
             ),
           ],
