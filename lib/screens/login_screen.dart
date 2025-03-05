@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:lottie/lottie.dart';
-
+import 'package:shared_preferences/shared_preferences.dart';
 import '/screens/med_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -32,6 +32,9 @@ class _LoginScreenState extends State<LoginScreen> {
     if (response.statusCode == 200) {
       final responseData = jsonDecode(response.body);
       final token = responseData['access_token'];
+
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('auth_token', token);
 
       ScaffoldMessenger.of(
         context,
@@ -73,8 +76,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),      
 child: Lottie.asset(
   'assets/animations/animation_welcome.json',
-  width: 150,
-  height: 150,
+  width: 350,
+  height: 350,
   
 ),                ),
                 // Bottom Form Box
