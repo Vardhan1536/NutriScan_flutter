@@ -58,7 +58,8 @@ class _LoginScreenState extends State<LoginScreen> {
         color: const Color(0xFF0D244A),
         width: double.infinity,
         child: Center(
-          child: SingleChildScrollView( // Ensures content fits smaller screens
+          child: SingleChildScrollView(
+            // Ensures content fits smaller screens
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -69,17 +70,17 @@ class _LoginScreenState extends State<LoginScreen> {
                   decoration: BoxDecoration(
                     color: Color(0xFF0D244A),
                     borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(50),
-                    topRight: Radius.circular(50),
-                    bottomRight: Radius.circular(50),
+                      topLeft: Radius.circular(50),
+                      topRight: Radius.circular(50),
+                      bottomRight: Radius.circular(50),
+                    ),
                   ),
-                  ),      
-child: Lottie.asset(
-  'assets/animations/animation_welcome.json',
-  width: 350,
-  height: 350,
-  
-),                ),
+                  child: Lottie.asset(
+                    'assets/animations/animation_welcome.json',
+                    width: 350,
+                    height: 350,
+                  ),
+                ),
                 // Bottom Form Box
                 Container(
                   padding: const EdgeInsets.all(30),
@@ -87,9 +88,9 @@ child: Lottie.asset(
                   decoration: BoxDecoration(
                     color: Color(0xFFFDF3EF),
                     borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(50),
-                    topRight: Radius.circular(50),
-  ),
+                      topLeft: Radius.circular(50),
+                      topRight: Radius.circular(50),
+                    ),
                   ),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
@@ -98,26 +99,26 @@ child: Lottie.asset(
                       // Username Field
                       Padding(
                         padding: const EdgeInsets.only(top: 30),
-                        child :TextField(
-                        controller: usernameController,
-                        style: const TextStyle(fontSize: 14),
-                        decoration: const InputDecoration(
-                          labelText: 'Username',
-                          labelStyle: TextStyle(color: Colors.black),
-                          isDense: true,
-                          contentPadding: EdgeInsets.symmetric(vertical: 8),
-                          border: UnderlineInputBorder(),
-                          enabledBorder: UnderlineInputBorder(
-                            borderSide: BorderSide(color: Colors.black54),
-                          ),
-                          focusedBorder: UnderlineInputBorder(
-                            borderSide: BorderSide(
-                              color: Color(0xFF0D244A),
-                              width: 2,
+                        child: TextField(
+                          controller: usernameController,
+                          style: const TextStyle(fontSize: 14),
+                          decoration: const InputDecoration(
+                            labelText: 'Username',
+                            labelStyle: TextStyle(color: Colors.black),
+                            isDense: true,
+                            contentPadding: EdgeInsets.symmetric(vertical: 8),
+                            border: UnderlineInputBorder(),
+                            enabledBorder: UnderlineInputBorder(
+                              borderSide: BorderSide(color: Colors.black54),
+                            ),
+                            focusedBorder: UnderlineInputBorder(
+                              borderSide: BorderSide(
+                                color: Color(0xFF0D244A),
+                                width: 2,
+                              ),
                             ),
                           ),
                         ),
-                      ),
                       ),
                       const SizedBox(height: 15),
                       // Password Field
@@ -185,21 +186,30 @@ child: Lottie.asset(
                               width: 250,
                               child: ElevatedButton(
                                 onPressed: _login,
+                                // onPressed: () {
+                                //   Navigator.pushReplacement(
+                                //     context,
+                                //     MaterialPageRoute(
+                                //       builder: (context) => MedScreen(token: '',),
+                                //     ),
+                                //   );
+                                // },
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: const Color(0xFFCEE8F1),
                                   foregroundColor: Colors.white,
-                                  padding: const EdgeInsets.symmetric(vertical: 14),
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 14,
+                                  ),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                 ),
                                 child: const Text(
                                   'Login',
-                                  style: TextStyle(fontSize: 16,
-                                  color : Color(0xFF0D244A),
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color: Color(0xFF0D244A),
                                   ),
-                                  
-                                  
                                 ),
                               ),
                             ),
@@ -222,10 +232,11 @@ child: Lottie.asset(
                                       fontWeight: FontWeight.bold,
                                       color: Color(0xFF0D244A),
                                     ),
-                                    recognizer: TapGestureRecognizer()
-                                      ..onTap = () {
-                                        print('Redirect to Sign Up Page');
-                                      },
+                                    recognizer:
+                                        TapGestureRecognizer()
+                                          ..onTap = () {
+                                            print('Redirect to Sign Up Page');
+                                          },
                                   ),
                                 ],
                               ),

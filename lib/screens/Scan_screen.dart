@@ -1,16 +1,16 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:demo/screens/login_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:http/http.dart' as http;
+import 'package:path_provider/path_provider.dart';
 
 class ScanScreen extends StatefulWidget {
-  final String token; // JWT token for authorization
+  final String token;
 
-  const ScanScreen({super.key, required this.token});
+  const ScanScreen({Key? key, required this.token}) : super(key: key);
 
   @override
   State<ScanScreen> createState() => _ScanScreenState();
@@ -21,61 +21,35 @@ class _ScanScreenState extends State<ScanScreen> {
   bool isUploading = false;
   String? scanResult;
 
-  @override
-  void initState() {
-    super.initState();
-    _checkPermissions();
-  }
-
-  Future<void> _checkPermissions() async {
-    await Permission.camera.request();
-    await Permission.photos.request();
-  }
-
   Future<void> _pickImage(ImageSource source) async {
-    try {
-      final pickedFile = await ImagePicker().pickImage(source: source);
+    final pickedFile = await ImagePicker().pickImage(source: source);
 
-      if (pickedFile != null) {
-        setState(() {
-          imageFile = File(pickedFile.path);
-          scanResult = null; // Reset previous result
-        });
-      }
-    } catch (e) {
-      print("Error picking image: $e");
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Failed to pick image.")),
-      );
+    if (pickedFile != null) {
+      setState(() {
+        imageFile = File(pickedFile.path);
+        scanResult = null;
+      });
     }
   }
 
   Future<File?> _fetchMedicalReport() async {
-    try {
-      final reportUri = Uri.parse('http://192.168.255.154:8000/medical-report');
+    final response = await http.get(
+      Uri.parse('http://192.168.192.154:8000/medical-report'),
+      headers: {'Authorization': 'Bearer ${widget.token}'},
+    );
 
-      final response = await http.get(
-        reportUri,
-        headers: {'Authorization': 'Bearer ${widget.token}'},
-      );
-
-      if (response.statusCode != 200) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to fetch medical report (Status ${response.statusCode})')),
-        );
-        return null;
-      }
-
-      // Save report to temporary file
+    if (response.statusCode == 200) {
       final tempDir = await getTemporaryDirectory();
       final reportFile = File('${tempDir.path}/medical_report.pdf');
       await reportFile.writeAsBytes(response.bodyBytes);
-
       return reportFile;
-    } catch (e) {
-      print("Error fetching medical report: $e");
+    } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Error fetching medical report.")),
+        SnackBar(
+          content: Text(
+            'Failed to fetch medical report (Status ${response.statusCode})',
+          ),
+        ),
       );
       return null;
     }
@@ -91,7 +65,7 @@ class _ScanScreenState extends State<ScanScreen> {
 
     setState(() {
       isUploading = true;
-      scanResult = null; // Reset scan result
+      scanResult = null;
     });
 
     try {
@@ -100,15 +74,18 @@ class _ScanScreenState extends State<ScanScreen> {
         setState(() {
           isUploading = false;
         });
-        return; // If report fetch failed, don't proceed
+        return;
       }
 
-      final uri = Uri.parse('http://192.168.255.154:8000/food-scan');
-
+      final uri = Uri.parse('http://192.168.192.154:8000/food-scan');
       final request = http.MultipartRequest('POST', uri);
-      request.files.add(await http.MultipartFile.fromPath('image', imageFile!.path));
-      request.files.add(await http.MultipartFile.fromPath('medical', medical.path));
 
+      request.files.add(
+        await http.MultipartFile.fromPath('image', imageFile!.path),
+      );
+      request.files.add(
+        await http.MultipartFile.fromPath('medical', medical.path),
+      );
       request.headers['Authorization'] = 'Bearer ${widget.token}';
 
       final response = await request.send();
@@ -121,16 +98,20 @@ class _ScanScreenState extends State<ScanScreen> {
         });
 
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Image and medical report processed successfully!")),
+          const SnackBar(
+            content: Text("Image and medical report processed successfully!"),
+          ),
         );
       } else {
-        print('Failed response: $responseBody');
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Failed to process files (Status ${response.statusCode})")),
+          SnackBar(
+            content: Text(
+              "Failed to process files (Status ${response.statusCode})",
+            ),
+          ),
         );
       }
     } catch (e) {
-      print("Error sending files: $e");
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Error communicating with the server.")),
       );
@@ -141,62 +122,242 @@ class _ScanScreenState extends State<ScanScreen> {
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text("Scan Screen")),
-      body: Center(
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+  String _cleanScanResult(String? result) {
+    if (result == null || result.isEmpty) return "No result found.";
+
+    // Clean unwanted characters and make it pretty
+    return result
+        .replaceAll(r'\n', '\n') // Convert literal \n to actual newlines
+        .replaceAll('\\n', '\n') // Handle double escapes
+        .replaceAll(r'\t', ' ') // Replace tabs with space
+        .replaceAll('\\t', ' ')
+        .replaceAll(RegExp(r'[\*\_\-\\]'), '') // Remove *, _, -, \
+        .replaceAll(RegExp(r'\n\s*\n'), '\n\n') // Remove excess blank lines
+        .trim();
+  }
+
+@override
+Widget build(BuildContext context) {
+  return Scaffold(
+    backgroundColor: const Color(0xFFFDF3EF),
+
+    body: Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        children: [
+          // Fixed Header
+          const SizedBox(height: 50),
+          const Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              ElevatedButton.icon(
-                icon: const Icon(Icons.camera),
-                label: const Text("Capture Image"),
-                onPressed: () => _pickImage(ImageSource.camera),
-              ),
-              ElevatedButton.icon(
-                icon: const Icon(Icons.photo_library),
-                label: const Text("Pick from Gallery"),
-                onPressed: () => _pickImage(ImageSource.gallery),
-              ),
-              if (imageFile != null)
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    children: [
-                      Image.file(imageFile!, height: 200),
-                      const SizedBox(height: 10),
-                      ElevatedButton.icon(
-                        icon: const Icon(Icons.cloud_upload),
-                        label: isUploading
-                            ? const SizedBox(
-                                height: 20,
-                                width: 20,
-                                child: CircularProgressIndicator(strokeWidth: 2),
-                              )
-                            : const Text("Upload Image & Report"),
-                        onPressed: isUploading ? null : _sendToBackend,
-                      ),
-                    ],
-                  ),
+              Text(
+                "Scan",
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF0D244A),
                 ),
-              if (scanResult != null)
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Text(
-                    "Scan Result: $scanResult",
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
+              ),
             ],
           ),
-        ),
+
+          const SizedBox(height: 16),
+
+          // Scrollable Area - Wrap rest of content in Expanded + SingleChildScrollView
+          Expanded(
+            child: SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              child: _buildMainContent(),
+            ),
+          ),
+        ],
       ),
+    ),
+
+    bottomNavigationBar: BottomAppBar(
+      shape: const CircularNotchedRectangle(),
+      notchMargin: 8.0,
+      color: const Color(0xFF0D244A),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          const SizedBox(width: 50),
+          const Spacer(),
+          IconButton(
+            icon: const Icon(Icons.logout, color: Colors.white),
+            onPressed: () {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => LoginScreen()),
+              );
+            },
+          ),
+        ],
+      ),
+    ),
+
+    floatingActionButton: SizedBox(
+      width: 65,
+      height: 65,
+      child: FloatingActionButton(
+        shape: const CircleBorder(),
+        backgroundColor: const Color(0xFFF1AA8F),
+        child: const Icon(
+          Icons.qr_code_scanner,
+          color: Colors.white,
+          size: 30,
+        ),
+        onPressed: () {
+          // Add scan action here
+        },
+      ),
+    ),
+    floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+  );
+}
+
+  Widget _buildMainContent() {
+    return Column(
+      children: [
+        // const SizedBox(height: 50),
+        // const Row(
+        //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        //   children: [
+        //     Text(
+        //       "Scan",
+        //       style: TextStyle(
+        //         fontSize: 22,
+        //         fontWeight: FontWeight.bold,
+        //         color: Color(0xFF0D244A),
+        //       ),
+        //     ),
+        //   ],
+        // ),
+        if (imageFile != null)
+          Container(
+            height: 200,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              color: Colors.white,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black12,
+                  blurRadius: 4,
+                  spreadRadius: 1,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: Image.file(
+                imageFile!,
+                fit: BoxFit.cover,
+                width: double.infinity,
+              ),
+            ),
+          ),
+        const SizedBox(height: 20),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            ElevatedButton.icon(
+              icon: const Icon(Icons.camera_alt),
+              label: const Text("Capture"),
+              onPressed: () => _pickImage(ImageSource.camera),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFF1AA8F),
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
+              ),
+            ),
+            ElevatedButton.icon(
+              icon: const Icon(Icons.photo_library),
+              label: const Text("Gallery"),
+              onPressed: () => _pickImage(ImageSource.gallery),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFF1AA8F),
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 20),
+        ElevatedButton.icon(
+          icon:
+              isUploading
+                  ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
+                  )
+                  : const Icon(Icons.cloud_upload),
+          label:
+              isUploading
+                  ? const Text("Processing...")
+                  : const Text("Upload & Process"),
+          onPressed: isUploading ? null : _sendToBackend,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFF0D244A),
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          ),
+        ),
+        const SizedBox(height: 20),
+        if (scanResult != null)
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black12,
+                  blurRadius: 4,
+                  spreadRadius: 1,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    "Scan Result",
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF0D244A),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    _cleanScanResult(scanResult),
+                    style: const TextStyle(
+                      fontSize: 16,
+                      color: Colors.black87,
+                      height: 1.5,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+      ],
     );
   }
+
+  // Bottom App Bar - Same style as MedScreen
 }

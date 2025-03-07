@@ -14,7 +14,7 @@ void main() async {
 
 Future<String?> getSavedToken() async {
   final prefs = await SharedPreferences.getInstance();
-  return prefs.getString('auth_token');  // Fetch saved token if exists
+  return prefs.getString('auth_token');  
 }
 
 class MyApp extends StatelessWidget {

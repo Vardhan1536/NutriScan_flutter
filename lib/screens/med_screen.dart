@@ -1,9 +1,11 @@
+import 'package:demo/screens/login_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:file_picker/file_picker.dart';
 import 'dart:convert';
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'scan_screen.dart';
 
@@ -92,6 +94,15 @@ class _MedScreenState extends State<MedScreen> {
     }
   }
 
+  Future<void> _logout() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('auth_token'); // Clear the saved token
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => const LoginScreen()),
+    );
+  }
+
   void navigateToScanScreen() {
     Navigator.push(
       context,
@@ -102,7 +113,7 @@ class _MedScreenState extends State<MedScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFDF3EF), 
+      backgroundColor: const Color(0xFFFDF3EF),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -127,7 +138,9 @@ class _MedScreenState extends State<MedScreen> {
                     backgroundColor: const Color(0xFFF1AA8F), // Soft Orange
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 10),
+                      horizontal: 16,
+                      vertical: 10,
+                    ),
                   ),
                 ),
               ],
@@ -136,90 +149,100 @@ class _MedScreenState extends State<MedScreen> {
 
             // List of Files
             Expanded(
-              child: files.isEmpty
-                  ? const Center(child: Text('No reports uploaded yet.'))
-                  : ListView.builder(
-                      itemCount: files.length,
-                      itemBuilder: (context, index) {
-                        final file = files[index];
-                        final isPdf = file['filename']
-                            .toString()
-                            .toLowerCase()
-                            .endsWith('.pdf');
+              child:
+                  files.isEmpty
+                      ? const Center(child: Text('No reports uploaded yet.'))
+                      : ListView.builder(
+                        itemCount: files.length,
+                        itemBuilder: (context, index) {
+                          final file = files[index];
+                          final isPdf = file['filename']
+                              .toString()
+                              .toLowerCase()
+                              .endsWith('.pdf');
 
-                        return Container(
-                          margin: const EdgeInsets.symmetric(vertical: 8),
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(12),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black12,
-                                blurRadius: 4,
-                                spreadRadius: 1,
-                                offset: Offset(0, 2),
-                              ),
-                            ],
-                          ),
-                          child: Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(8),
-                                decoration: BoxDecoration(
-                                  color: isPdf
-                                      ? Colors.red.shade100
-                                      : Colors.blue.shade100,
-                                  shape: BoxShape.circle,
+                          return Container(
+                            margin: const EdgeInsets.symmetric(vertical: 8),
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(12),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black12,
+                                  blurRadius: 4,
+                                  spreadRadius: 1,
+                                  offset: Offset(0, 2),
                                 ),
-                                child: Icon(
-                                  isPdf
-                                      ? Icons.picture_as_pdf
-                                      : Icons.insert_drive_file,
-                                  color: isPdf ? Colors.red : Colors.blue,
-                                  size: 28,
+                              ],
+                            ),
+                            child: Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color:
+                                        isPdf
+                                            ? Colors.red.shade100
+                                            : Colors.blue.shade100,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Icon(
+                                    isPdf
+                                        ? Icons.picture_as_pdf
+                                        : Icons.insert_drive_file,
+                                    color: isPdf ? Colors.red : Colors.blue,
+                                    size: 28,
+                                  ),
                                 ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      file['filename'],
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 15,
-                                        color: Color(0xFF0D244A),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        file['filename'],
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 15,
+                                          color: Color(0xFF0D244A),
+                                        ),
                                       ),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      'Uploaded: ${file['uploaded_at'] ?? 'N/A'}',
-                                      style: const TextStyle(
-                                        fontSize: 12,
-                                        color: Colors.grey,
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        'Uploaded: ${file['uploaded_at'] ?? 'N/A'}',
+                                        style: const TextStyle(
+                                          fontSize: 12,
+                                          color: Colors.grey,
+                                        ),
                                       ),
-                                    ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
-                              ),
-                              IconButton(
-                                icon: const Icon(Icons.download,
-                                    color: Color(0xFF0D244A)),
-                                onPressed: () => downloadFile(
-                                    file['file_id'], file['filename']),
-                              ),
-                              IconButton(
-                                icon: const Icon(Icons.delete,
-                                    color: Color(0xFFD32F2F)),
-                                onPressed: () => deleteFile(file['file_id']),
-                              ),
-                            ],
-                          ),
-                        );
-                      },
-                    ),
+                                IconButton(
+                                  icon: const Icon(
+                                    Icons.download,
+                                    color: Color(0xFF0D244A),
+                                  ),
+                                  onPressed:
+                                      () => downloadFile(
+                                        file['file_id'],
+                                        file['filename'],
+                                      ),
+                                ),
+                                IconButton(
+                                  icon: const Icon(
+                                    Icons.delete,
+                                    color: Color(0xFFD32F2F),
+                                  ),
+                                  onPressed: () => deleteFile(file['file_id']),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
             ),
           ],
         ),
@@ -229,18 +252,43 @@ class _MedScreenState extends State<MedScreen> {
         shape: const CircularNotchedRectangle(),
         notchMargin: 8.0,
         color: const Color(0xFF0D244A), // Primary Color
-        child: const SizedBox(height: 50), // Space for floating button
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const SizedBox(
+              width: 50,
+            ), // Space to balance floating button on the left
+
+            const Spacer(), // Pushes logout icon to the far right
+
+            IconButton(
+              icon: const Icon(Icons.logout, color: Colors.white),
+              onPressed: () {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => LoginScreen()),
+                );
+              },
+            ),
+          ],
+        ),
       ),
+
       floatingActionButton: Container(
-        width: 65, // Perfect circular button
+        width: 65,
         height: 65,
         child: FloatingActionButton(
           shape: const CircleBorder(),
           backgroundColor: const Color(0xFFF1AA8F), // Soft Orange
-          child: const Icon(Icons.qr_code_scanner, color: Colors.white, size: 30),
-          onPressed: navigateToScanScreen,
+          child: const Icon(
+            Icons.qr_code_scanner,
+            color: Colors.white,
+            size: 30,
+          ),
+          onPressed: navigateToScanScreen, // This triggers the ScanPopup
         ),
       ),
+
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
   }
