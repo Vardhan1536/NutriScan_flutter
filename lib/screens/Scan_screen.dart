@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
-
+import 'package:demo/widgets/floating_snackbar.dart';
 import 'package:demo/screens/login_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -44,12 +44,12 @@ class _ScanScreenState extends State<ScanScreen> {
       await reportFile.writeAsBytes(response.bodyBytes);
       return reportFile;
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Failed to fetch medical report (Status ${response.statusCode})',
-          ),
-        ),
+      FloatingSnackbar.show(
+        context,
+        'Failed to fetch medical report (Status ${response.statusCode})',
+        backgroundColor: Colors.redAccent,
+        textColor: Colors.white,
+        duration: Duration(seconds: 5),
       );
       return null;
     }
@@ -57,9 +57,11 @@ class _ScanScreenState extends State<ScanScreen> {
 
   Future<void> _sendToBackend() async {
     if (imageFile == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please select an image first.")),
-      );
+      FloatingSnackbar.show(context, 'Please select an image first',
+      backgroundColor: Colors.yellow.shade200,
+      textColor: Colors.black,
+      duration: Duration(seconds: 5),
+  );
       return;
     }
 
@@ -97,24 +99,30 @@ class _ScanScreenState extends State<ScanScreen> {
           scanResult = jsonEncode(responseData['result']);
         });
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text("Image and medical report processed successfully!"),
-          ),
+        FloatingSnackbar.show(
+          context,
+          'Image and Medical reports processed Successfully!!',
+          backgroundColor: Colors.white,
+          textColor: Colors.black,
+          duration: Duration(seconds: 5),
         );
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              "Failed to process files (Status ${response.statusCode})",
-            ),
-          ),
+        FloatingSnackbar.show(
+            context,
+            "Failed to process files (Status ${response.statusCode})",
+            backgroundColor: Colors.redAccent,
+            textColor: Colors.white,
+            duration: Duration(seconds: 5),
         );
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Error communicating with the server.")),
-      );
+      FloatingSnackbar.show(
+          context,
+          'Error Communicating with the server, try again later',
+          backgroundColor: Colors.redAccent,
+          textColor: Colors.white,
+          duration: Duration(seconds: 5),
+        );
     } finally {
       setState(() {
         isUploading = false;
@@ -136,85 +144,85 @@ class _ScanScreenState extends State<ScanScreen> {
         .trim();
   }
 
-@override
-Widget build(BuildContext context) {
-  return Scaffold(
-    backgroundColor: const Color(0xFFFDF3EF),
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFFFDF3EF),
 
-    body: Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        children: [
-          // Fixed Header
-          const SizedBox(height: 50),
-          const Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                "Scan",
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF0D244A),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            // Fixed Header
+            const SizedBox(height: 50),
+            const Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  "Scan",
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF0D244A),
+                  ),
                 ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 16),
-
-          // Scrollable Area - Wrap rest of content in Expanded + SingleChildScrollView
-          Expanded(
-            child: SingleChildScrollView(
-              physics: const BouncingScrollPhysics(),
-              child: _buildMainContent(),
+              ],
             ),
-          ),
-        ],
-      ),
-    ),
 
-    bottomNavigationBar: BottomAppBar(
-      shape: const CircularNotchedRectangle(),
-      notchMargin: 8.0,
-      color: const Color(0xFF0D244A),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          const SizedBox(width: 50),
-          const Spacer(),
-          IconButton(
-            icon: const Icon(Icons.logout, color: Colors.white),
-            onPressed: () {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (context) => LoginScreen()),
-              );
-            },
-          ),
-        ],
-      ),
-    ),
+            const SizedBox(height: 16),
 
-    floatingActionButton: SizedBox(
-      width: 65,
-      height: 65,
-      child: FloatingActionButton(
-        shape: const CircleBorder(),
-        backgroundColor: const Color(0xFFF1AA8F),
-        child: const Icon(
-          Icons.qr_code_scanner,
-          color: Colors.white,
-          size: 30,
+            // Scrollable Area - Wrap rest of content in Expanded + SingleChildScrollView
+            Expanded(
+              child: SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+                child: _buildMainContent(),
+              ),
+            ),
+          ],
         ),
-        onPressed: () {
-          // Add scan action here
-        },
       ),
-    ),
-    floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-  );
-}
+
+      bottomNavigationBar: BottomAppBar(
+        shape: const CircularNotchedRectangle(),
+        notchMargin: 8.0,
+        color: const Color(0xFF0D244A),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const SizedBox(width: 50),
+            const Spacer(),
+            IconButton(
+              icon: const Icon(Icons.logout, color: Colors.white),
+              onPressed: () {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => LoginScreen()),
+                );
+              },
+            ),
+          ],
+        ),
+      ),
+
+      floatingActionButton: SizedBox(
+        width: 65,
+        height: 65,
+        child: FloatingActionButton(
+          shape: const CircleBorder(),
+          backgroundColor: const Color(0xFFF1AA8F),
+          child: const Icon(
+            Icons.qr_code_scanner,
+            color: Colors.white,
+            size: 30,
+          ),
+          onPressed: () {
+            // Add scan action here
+          },
+        ),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+    );
+  }
 
   Widget _buildMainContent() {
     return Column(

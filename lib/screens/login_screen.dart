@@ -1,3 +1,4 @@
+import 'package:demo/widgets/floating_snackbar.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -36,18 +37,25 @@ class _LoginScreenState extends State<LoginScreen> {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('auth_token', token);
 
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Login Successful!')));
-
+      FloatingSnackbar.show(
+          context,
+          'Login Successfull',
+          backgroundColor: Colors.green,
+          textColor: Colors.white,
+          duration: Duration(seconds: 5),
+        );
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => MedScreen(token: token)),
       );
     } else {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Invalid credentials')));
+      FloatingSnackbar.show(
+          context,
+          'Invalid Credentials',
+          backgroundColor: Colors.redAccent,
+          textColor: Colors.white,
+          duration: Duration(seconds: 5),
+        );
     }
   }
 
