@@ -18,19 +18,25 @@ class HomeScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            SizedBox(height: 60), // Increased space for logo
+            Padding(
+              padding: const EdgeInsets.only(left: 10), // Align logo to the left
+              child: Image.asset(
+                'assets/nutriscan_logo.png',
+                height: 40, // Slightly larger logo
+              ),
+            ),
+            SizedBox(height: 20),
             // Hero Section
             Container(
-              height: 350,
+              height: 250,
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [Color(0xFF0D244A), Color(0xFF1A1F3C)],
+                  colors: [Color(0xFF2E629E), Color(0xFF427C81)],
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                 ),
-                borderRadius: BorderRadius.only(
-                  bottomLeft: Radius.circular(50),
-                  bottomRight: Radius.circular(50),
-                ),
+                borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withOpacity(0.3),
@@ -41,66 +47,44 @@ class HomeScreen extends StatelessWidget {
               ),
               child: Stack(
                 children: [
-                  // Light Background Overlay
-                  Positioned(
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    child: Opacity(
-                      opacity: 0.08,
-                      child: Image.asset(
-                        'assets/images/healthy_food_bg.png', // Add a premium pattern image
-                        fit: BoxFit.cover,
-                      ),
+                  Container(
+                    height: 250,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(20),
                     ),
                   ),
-
                   Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 24,
-                      vertical: 40,
-                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 60),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        SizedBox(height: 50), // More breathing space
                         Text(
                           "Welcome to NutriScan",
                           style: TextStyle(
-                            fontSize: 30,
+                            fontSize: 26,
                             fontWeight: FontWeight.bold,
                             color: Colors.white,
-                            letterSpacing: 1.2,
                           ),
                         ),
                         SizedBox(height: 12),
                         Text(
                           "Your AI-powered Nutrition Assistant",
                           style: TextStyle(
-                            fontSize: 18,
+                            fontSize: 16,
                             color: Colors.white70,
-                            fontWeight: FontWeight.w500,
                           ),
                         ),
-                        SizedBox(height: 20),
-
-                        // Call to Action Button
+                        SizedBox(height: 10),
                         ElevatedButton(
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Color(0xFFF1AA8F), // Soft Orange
-                            padding: EdgeInsets.symmetric(
-                              horizontal: 20,
-                              vertical: 12,
-                            ),
+                            backgroundColor: Color(0xFF6BB047), // Lime Green
+                            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(30),
                             ),
                           ),
-                          onPressed: () {
-                            // Navigate to scan screen or another section
-                          },
+                          onPressed: () {},
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
@@ -113,10 +97,7 @@ class HomeScreen extends StatelessWidget {
                                 ),
                               ),
                               SizedBox(width: 8),
-                              Icon(
-                                Icons.arrow_forward_rounded,
-                                color: Colors.white,
-                              ),
+                              Icon(Icons.arrow_forward_rounded, color: Colors.white),
                             ],
                           ),
                         ),
@@ -185,7 +166,7 @@ class HomeScreen extends StatelessWidget {
       bottomNavigationBar: BottomNavBar(
         onScanPressed: () => Navigator.pushNamed(context, '/scan'),
         onHomePressed: () => Navigator.pushNamed(context, '/home'),
-        onProfilePressed: () => null,
+        onProfilePressed: () => Navigator.pushNamed(context, '/med'),
         onLogoutPressed: () => Navigator.pushNamed(context, '/login'),
       ),
 

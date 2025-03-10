@@ -113,15 +113,20 @@ class _MedScreenState extends State<MedScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFDF3EF),
+      backgroundColor: Color(0xFFFFFFFF),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 50),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
+                Image.asset(
+                  'assets/logo.png',
+                  height: 40, // Slightly larger logo
+                ),
                 const Text(
                   "Medical Reports",
                   style: TextStyle(
@@ -257,11 +262,7 @@ class _MedScreenState extends State<MedScreen> {
       floatingActionButton: FloatingActionButton(
         shape: const CircleBorder(),
         backgroundColor: const Color(0xFFF1AA8F), // Soft Orange
-        child: const Icon(
-          Icons.qr_code_scanner,
-          color: Colors.white,
-          size: 30,
-        ),
+        child: const Icon(Icons.qr_code_scanner, color: Colors.white, size: 30),
         onPressed: navigateToScanScreen,
       ),
 

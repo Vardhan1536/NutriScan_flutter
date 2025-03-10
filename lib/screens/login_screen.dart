@@ -63,7 +63,7 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        color: const Color(0xFF0D244A),
+        color: Color(0xFFFFFFFF),
         width: double.infinity,
         child: Center(
           child: SingleChildScrollView(
@@ -76,18 +76,17 @@ class _LoginScreenState extends State<LoginScreen> {
                   padding: const EdgeInsets.all(35),
                   height: 400,
                   decoration: BoxDecoration(
-                    color: Color(0xFF0D244A),
+                    color: Color(0xFFFFFFFF),
                     borderRadius: BorderRadius.only(
                       topLeft: Radius.circular(50),
                       topRight: Radius.circular(50),
                       bottomRight: Radius.circular(50),
                     ),
                   ),
-                  child: Lottie.asset(
-                    'assets/animations/animation_welcome.json',
-                    width: 350,
-                    height: 350,
-                  ),
+                  child: Image.asset(
+                'assets/image.png',
+                height: 40, // Slightly larger logo
+              ),
                 ),
                 // Bottom Form Box
                 Container(

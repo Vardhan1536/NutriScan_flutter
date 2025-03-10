@@ -154,12 +154,16 @@ class _ScanScreenState extends State<ScanScreen> {
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Fixed Header
             const SizedBox(height: 50),
-            const Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+             Row(
+              // mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
+                Image.asset(
+                  'assets/logo.png',
+                  height: 40, // Slightly larger logo
+                ),
                 Text(
                   "Scan",
                   style: TextStyle(

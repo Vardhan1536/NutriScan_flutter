@@ -29,11 +29,11 @@ class BottomNavBar extends StatelessWidget {
           ),
 
           IconButton(
-            icon: const Icon(Icons.person, color: Colors.white),
+            icon: const Icon(Icons.upload_file, color: Colors.white),
             onPressed: onProfilePressed, // Navigate to Profile
           ),
 
-          const SizedBox(width: 50), // Space for Floating Action Button
+          const SizedBox(width: 110), // Space for Floating Action Button
 
           IconButton(
             icon: const Icon(Icons.logout, color: Colors.white),
