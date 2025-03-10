@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:demo/widgets/bottom_navbar.dart';
 import 'package:demo/widgets/floating_snackbar.dart';
 import 'package:demo/screens/login_screen.dart';
 import 'package:flutter/material.dart';
@@ -34,7 +35,7 @@ class _ScanScreenState extends State<ScanScreen> {
 
   Future<File?> _fetchMedicalReport() async {
     final response = await http.get(
-      Uri.parse('http://192.168.192.154:8000/medical-report'),
+      Uri.parse('http://192.168.232.154:8000/medical-report'),
       headers: {'Authorization': 'Bearer ${widget.token}'},
     );
 
@@ -79,7 +80,7 @@ class _ScanScreenState extends State<ScanScreen> {
         return;
       }
 
-      final uri = Uri.parse('http://192.168.192.154:8000/food-scan');
+      final uri = Uri.parse('http://192.168.232.154:8000/food-scan');
       final request = http.MultipartRequest('POST', uri);
 
       request.files.add(
@@ -92,13 +93,14 @@ class _ScanScreenState extends State<ScanScreen> {
 
       final response = await request.send();
       final responseBody = await response.stream.bytesToString();
+     
 
       if (response.statusCode == 200) {
         final responseData = jsonDecode(responseBody);
         setState(() {
           scanResult = jsonEncode(responseData['result']);
         });
-
+         print(scanResult);
         FloatingSnackbar.show(
           context,
           'Image and Medical reports processed Successfully!!',
@@ -147,7 +149,7 @@ class _ScanScreenState extends State<ScanScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFDF3EF),
+      backgroundColor: Color(0xFFFFFFFF),
 
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -182,44 +184,24 @@ class _ScanScreenState extends State<ScanScreen> {
         ),
       ),
 
-      bottomNavigationBar: BottomAppBar(
-        shape: const CircularNotchedRectangle(),
-        notchMargin: 8.0,
-        color: const Color(0xFF0D244A),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            const SizedBox(width: 50),
-            const Spacer(),
-            IconButton(
-              icon: const Icon(Icons.logout, color: Colors.white),
-              onPressed: () {
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (context) => LoginScreen()),
-                );
-              },
-            ),
-          ],
-        ),
+      bottomNavigationBar: BottomNavBar(
+        onScanPressed: () => Navigator.pushNamed(context, '/scan'),
+        onHomePressed: () => Navigator.pushNamed(context, '/home'),
+        onProfilePressed: () => null,
+        onLogoutPressed: () => Navigator.pushNamed(context, '/login'),
       ),
 
-      floatingActionButton: SizedBox(
-        width: 65,
-        height: 65,
-        child: FloatingActionButton(
-          shape: const CircleBorder(),
-          backgroundColor: const Color(0xFFF1AA8F),
-          child: const Icon(
-            Icons.qr_code_scanner,
-            color: Colors.white,
-            size: 30,
-          ),
-          onPressed: () {
-            // Add scan action here
-          },
+      floatingActionButton: FloatingActionButton(
+        shape: const CircleBorder(),
+        backgroundColor: const Color(0xFFF1AA8F), // Soft Orange
+        child: const Icon(
+          Icons.qr_code_scanner,
+          color: Colors.white,
+          size: 30,
         ),
+        onPressed:() => Navigator.pushNamed(context, '/scan') ,
       ),
+
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
   }

@@ -1,15 +1,18 @@
+import 'package:demo/screens/home_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'screens/login_screen.dart';
 import 'screens/med_screen.dart';
+// import 'screens/profile_screen.dart';
+import 'screens/scan_screen.dart';
 import 'themes/app_theme.dart';
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized(); // Required to use async in main()
+  WidgetsFlutterBinding.ensureInitialized(); // Required for async in main()
 
   final String? token = await getSavedToken();
 
-  runApp(MyApp(initialScreen: token == null ? const LoginScreen() : MedScreen(token: token)));
+  runApp(MyApp(initialRoute: token == null ? '/login' : '/home', token: token));
 }
 
 Future<String?> getSavedToken() async {
@@ -18,9 +21,10 @@ Future<String?> getSavedToken() async {
 }
 
 class MyApp extends StatelessWidget {
-  final Widget initialScreen;
+  final String initialRoute;
+  final String? token;
 
-  const MyApp({super.key, required this.initialScreen});
+  const MyApp({super.key, required this.initialRoute, required this.token});
 
   @override
   Widget build(BuildContext context) {
@@ -28,7 +32,15 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'Medical Reports App',
       theme: AppTheme.lightTheme,
-      home: initialScreen,  // Start with either LoginScreen or MedScreen based on token
+      initialRoute: initialRoute, // Start with login or med screen
+
+      routes: {
+        '/login': (context) => const LoginScreen(),
+        '/med': (context) => MedScreen(token: token ?? ''), // Pass token dynamically
+        '/home' : (context) =>  HomeScreen(),
+        // '/profile': (context) => const ProfileScreen(),
+        '/scan': (context) => ScanScreen(token: token ?? ''), // ✅ Removed `const`
+      },
     );
   }
 }

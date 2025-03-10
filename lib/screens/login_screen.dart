@@ -22,7 +22,7 @@ class _LoginScreenState extends State<LoginScreen> {
     final String username = usernameController.text;
     final String password = passwordController.text;
 
-    final Uri url = Uri.parse('http://192.168.192.154:8000/login');
+    final Uri url = Uri.parse('http://192.168.232.154:8000/login');
 
     final response = await http.post(
       url,

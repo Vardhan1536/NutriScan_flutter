@@ -1,4 +1,5 @@
 import 'package:demo/screens/login_screen.dart';
+import 'package:demo/widgets/bottom_navbar.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:file_picker/file_picker.dart';
@@ -28,7 +29,7 @@ class _MedScreenState extends State<MedScreen> {
 
   Future<void> fetchFiles() async {
     final response = await http.get(
-      Uri.parse('http://192.168.192.154:8000/get-user-files'),
+      Uri.parse('http://192.168.232.154:8000/get-user-files'),
       headers: {'Authorization': 'Bearer ${widget.token}'},
     );
 
@@ -47,7 +48,7 @@ class _MedScreenState extends State<MedScreen> {
     if (result == null || result.files.isEmpty) return;
 
     final file = File(result.files.single.path!);
-    final uri = Uri.parse('http://192.168.192.154:8000/upload-medical-report');
+    final uri = Uri.parse('http://192.168.232.154:8000/upload-medical-report');
     final request = http.MultipartRequest('POST', uri);
 
     request.files.add(await http.MultipartFile.fromPath('file', file.path));
@@ -64,7 +65,7 @@ class _MedScreenState extends State<MedScreen> {
 
   Future<void> downloadFile(String fileId, String filename) async {
     final response = await http.get(
-      Uri.parse('http://192.168.192.154:8000/download-medical-report/$fileId'),
+      Uri.parse('http://192.168.232.154:8000/download-medical-report/$fileId'),
       headers: {'Authorization': 'Bearer ${widget.token}'},
     );
 
@@ -81,7 +82,7 @@ class _MedScreenState extends State<MedScreen> {
 
   Future<void> deleteFile(String fileId) async {
     final response = await http.delete(
-      Uri.parse('http://192.168.192.154:8000/delete-medical-report/$fileId'),
+      Uri.parse('http://192.168.232.154:8000/delete-medical-report/$fileId'),
       headers: {'Authorization': 'Bearer ${widget.token}'},
     );
 
@@ -246,46 +247,22 @@ class _MedScreenState extends State<MedScreen> {
           ],
         ),
       ),
-
-      bottomNavigationBar: BottomAppBar(
-        shape: const CircularNotchedRectangle(),
-        notchMargin: 8.0,
-        color: const Color(0xFF0D244A), // Primary Color
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            const SizedBox(
-              width: 50,
-            ), // Space to balance floating button on the left
-
-            const Spacer(), // Pushes logout icon to the far right
-
-            IconButton(
-              icon: const Icon(Icons.logout, color: Colors.white),
-              onPressed: () {
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (context) => LoginScreen()),
-                );
-              },
-            ),
-          ],
-        ),
+      bottomNavigationBar: BottomNavBar(
+        onScanPressed: navigateToScanScreen,
+        onHomePressed: () => Navigator.pushNamed(context, '/home'),
+        onProfilePressed: () => null,
+        onLogoutPressed: () => Navigator.pushNamed(context, '/login'),
       ),
 
-      floatingActionButton: Container(
-        width: 65,
-        height: 65,
-        child: FloatingActionButton(
-          shape: const CircleBorder(),
-          backgroundColor: const Color(0xFFF1AA8F), // Soft Orange
-          child: const Icon(
-            Icons.qr_code_scanner,
-            color: Colors.white,
-            size: 30,
-          ),
-          onPressed: navigateToScanScreen, // This triggers the ScanPopup
+      floatingActionButton: FloatingActionButton(
+        shape: const CircleBorder(),
+        backgroundColor: const Color(0xFFF1AA8F), // Soft Orange
+        child: const Icon(
+          Icons.qr_code_scanner,
+          color: Colors.white,
+          size: 30,
         ),
+        onPressed: navigateToScanScreen,
       ),
 
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
