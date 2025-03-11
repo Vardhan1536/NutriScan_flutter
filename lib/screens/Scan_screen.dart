@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ScanScreen extends StatefulWidget {
   final String token;
@@ -35,7 +36,7 @@ class _ScanScreenState extends State<ScanScreen> {
 
   Future<File?> _fetchMedicalReport() async {
     final response = await http.get(
-      Uri.parse('http://192.168.232.154:8000/medical-report'),
+      Uri.parse('http://192.168.50.154:8000/medical-report'),
       headers: {'Authorization': 'Bearer ${widget.token}'},
     );
 
@@ -56,93 +57,104 @@ class _ScanScreenState extends State<ScanScreen> {
     }
   }
 
+  
+Future<void> saveScanResult(String result) async {
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.setString('scan_result', result);
+}
+
   Future<void> _sendToBackend() async {
-    if (imageFile == null) {
-      FloatingSnackbar.show(context, 'Please select an image first',
+  if (imageFile == null) {
+    FloatingSnackbar.show(
+      context,
+      'Please select an image first',
       backgroundColor: Colors.yellow.shade200,
       textColor: Colors.black,
       duration: Duration(seconds: 5),
-  );
-      return;
-    }
+    );
+    return;
+  }
 
-    setState(() {
-      isUploading = true;
-      scanResult = null;
-    });
+  setState(() {
+    isUploading = true;
+    scanResult = null;
+  });
 
-    try {
-      final medical = await _fetchMedicalReport();
-      if (medical == null) {
-        setState(() {
-          isUploading = false;
-        });
-        return;
-      }
-
-      final uri = Uri.parse('http://192.168.232.154:8000/food-scan');
-      final request = http.MultipartRequest('POST', uri);
-
-      request.files.add(
-        await http.MultipartFile.fromPath('image', imageFile!.path),
-      );
-      request.files.add(
-        await http.MultipartFile.fromPath('medical', medical.path),
-      );
-      request.headers['Authorization'] = 'Bearer ${widget.token}';
-
-      final response = await request.send();
-      final responseBody = await response.stream.bytesToString();
-     
-
-      if (response.statusCode == 200) {
-        final responseData = jsonDecode(responseBody);
-        setState(() {
-          scanResult = jsonEncode(responseData['result']);
-        });
-         print(scanResult);
-        FloatingSnackbar.show(
-          context,
-          'Image and Medical reports processed Successfully!!',
-          backgroundColor: Colors.white,
-          textColor: Colors.black,
-          duration: Duration(seconds: 5),
-        );
-      } else {
-        FloatingSnackbar.show(
-            context,
-            "Failed to process files (Status ${response.statusCode})",
-            backgroundColor: Colors.redAccent,
-            textColor: Colors.white,
-            duration: Duration(seconds: 5),
-        );
-      }
-    } catch (e) {
-      FloatingSnackbar.show(
-          context,
-          'Error Communicating with the server, try again later',
-          backgroundColor: Colors.redAccent,
-          textColor: Colors.white,
-          duration: Duration(seconds: 5),
-        );
-    } finally {
+  try {
+    final medical = await _fetchMedicalReport();
+    if (medical == null) {
       setState(() {
         isUploading = false;
       });
+      return;
     }
+
+    final uri = Uri.parse('http://192.168.50.154:8000/food-scan');
+    final request = http.MultipartRequest('POST', uri);
+
+    request.files.add(
+      await http.MultipartFile.fromPath('image', imageFile!.path),
+    );
+    request.files.add(
+      await http.MultipartFile.fromPath('medical', medical.path),
+    );
+    request.headers['Authorization'] = 'Bearer ${widget.token}';
+
+    final response = await request.send();
+    final responseBody = await response.stream.bytesToString();
+
+    if (response.statusCode == 200) {
+      final responseData = jsonDecode(responseBody);
+      setState(() {
+        scanResult = jsonEncode(responseData['result']);
+      });
+
+      // Save result in SharedPreferences
+      await saveScanResult(scanResult!);
+
+      print(scanResult);
+      FloatingSnackbar.show(
+        context,
+        'Image and Medical reports processed Successfully!!',
+        backgroundColor: Colors.white,
+        textColor: Colors.black,
+        duration: Duration(seconds: 5),
+      );
+    } else {
+      FloatingSnackbar.show(
+        context,
+        'Failed to process (Status ${response.statusCode})',
+        backgroundColor: Colors.redAccent,
+        textColor: Colors.white,
+        duration: Duration(seconds: 5),
+      );
+    }
+  } catch (e) {
+    FloatingSnackbar.show(
+      context,
+      'Error: $e',
+      backgroundColor: Colors.redAccent,
+      textColor: Colors.white,
+      duration: Duration(seconds: 5),
+    );
+  } finally {
+    setState(() {
+      isUploading = false;
+    });
   }
+}
+
 
   String _cleanScanResult(String? result) {
     if (result == null || result.isEmpty) return "No result found.";
 
-    // Clean unwanted characters and make it pretty
     return result
-        .replaceAll(r'\n', '\n') // Convert literal \n to actual newlines
-        .replaceAll('\\n', '\n') // Handle double escapes
-        .replaceAll(r'\t', ' ') // Replace tabs with space
+        .replaceAll(r'\n', '\n') 
+        .replaceAll('\\n', '\n') 
+        .replaceAll(r'\t', ' ') 
         .replaceAll('\\t', ' ')
-        .replaceAll(RegExp(r'[\*\_\-\\]'), '') // Remove *, _, -, \
-        .replaceAll(RegExp(r'\n\s*\n'), '\n\n') // Remove excess blank lines
+        .replaceAll(RegExp(r'[\*\_\-\\]'), '') 
+        .replaceAll(RegExp(r'\n\s*\n'), '\n\n') 
         .trim();
   }
 
@@ -162,7 +174,7 @@ class _ScanScreenState extends State<ScanScreen> {
               children: [
                 Image.asset(
                   'assets/logo.png',
-                  height: 40, // Slightly larger logo
+                  height: 40, 
                 ),
                 Text(
                   "Scan",
@@ -176,8 +188,6 @@ class _ScanScreenState extends State<ScanScreen> {
             ),
 
             const SizedBox(height: 16),
-
-            // Scrollable Area - Wrap rest of content in Expanded + SingleChildScrollView
             Expanded(
               child: SingleChildScrollView(
                 physics: const BouncingScrollPhysics(),
@@ -191,13 +201,14 @@ class _ScanScreenState extends State<ScanScreen> {
       bottomNavigationBar: BottomNavBar(
         onScanPressed: () => Navigator.pushNamed(context, '/scan'),
         onHomePressed: () => Navigator.pushNamed(context, '/home'),
-        onProfilePressed: () => null,
+        onMedPressed: () => Navigator.pushNamed(context, '/med'),
+        onChatPressed: () => Navigator.pushNamed(context, '/chat'),
         onLogoutPressed: () => Navigator.pushNamed(context, '/login'),
       ),
 
       floatingActionButton: FloatingActionButton(
         shape: const CircleBorder(),
-        backgroundColor: const Color(0xFFF1AA8F), // Soft Orange
+        backgroundColor: const Color(0xFFF1AA8F), 
         child: const Icon(
           Icons.qr_code_scanner,
           color: Colors.white,
@@ -352,6 +363,4 @@ class _ScanScreenState extends State<ScanScreen> {
       ],
     );
   }
-
-  // Bottom App Bar - Same style as MedScreen
 }

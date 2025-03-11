@@ -6,6 +6,7 @@ import 'screens/med_screen.dart';
 // import 'screens/profile_screen.dart';
 import 'screens/scan_screen.dart';
 import 'themes/app_theme.dart';
+import 'screens/chat_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized(); // Required for async in main()
@@ -17,7 +18,7 @@ void main() async {
 
 Future<String?> getSavedToken() async {
   final prefs = await SharedPreferences.getInstance();
-  return prefs.getString('auth_token');  
+  return prefs.getString('auth_token');
 }
 
 class MyApp extends StatelessWidget {
@@ -36,9 +37,9 @@ class MyApp extends StatelessWidget {
 
       routes: {
         '/login': (context) => const LoginScreen(),
-        '/med': (context) => MedScreen(token: token ?? ''), // Pass token dynamically
-        '/home' : (context) =>  HomeScreen(),
-        // '/profile': (context) => const ProfileScreen(),
+        '/med':(context) => MedScreen(token: token ?? ''), 
+        '/home': (context) => HomeScreen(),
+        '/chat': (context) => ChatScreen(),
         '/scan': (context) => ScanScreen(token: token ?? ''), // ✅ Removed `const`
       },
     );

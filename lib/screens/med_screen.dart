@@ -29,7 +29,7 @@ class _MedScreenState extends State<MedScreen> {
 
   Future<void> fetchFiles() async {
     final response = await http.get(
-      Uri.parse('http://192.168.232.154:8000/get-user-files'),
+      Uri.parse('http://192.168.50.154:8000/get-user-files'),
       headers: {'Authorization': 'Bearer ${widget.token}'},
     );
 
@@ -48,7 +48,7 @@ class _MedScreenState extends State<MedScreen> {
     if (result == null || result.files.isEmpty) return;
 
     final file = File(result.files.single.path!);
-    final uri = Uri.parse('http://192.168.232.154:8000/upload-medical-report');
+    final uri = Uri.parse('http://192.168.50.154:8000/upload-medical-report');
     final request = http.MultipartRequest('POST', uri);
 
     request.files.add(await http.MultipartFile.fromPath('file', file.path));
@@ -65,7 +65,7 @@ class _MedScreenState extends State<MedScreen> {
 
   Future<void> downloadFile(String fileId, String filename) async {
     final response = await http.get(
-      Uri.parse('http://192.168.232.154:8000/download-medical-report/$fileId'),
+      Uri.parse('http://192.168.50.154:8000/download-medical-report/$fileId'),
       headers: {'Authorization': 'Bearer ${widget.token}'},
     );
 
@@ -82,7 +82,7 @@ class _MedScreenState extends State<MedScreen> {
 
   Future<void> deleteFile(String fileId) async {
     final response = await http.delete(
-      Uri.parse('http://192.168.232.154:8000/delete-medical-report/$fileId'),
+      Uri.parse('http://192.168.50.154:8000/delete-medical-report/$fileId'),
       headers: {'Authorization': 'Bearer ${widget.token}'},
     );
 
@@ -96,7 +96,7 @@ class _MedScreenState extends State<MedScreen> {
 
   Future<void> _logout() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('auth_token'); // Clear the saved token
+    await prefs.remove('auth_token'); 
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(builder: (context) => const LoginScreen()),
@@ -125,14 +125,14 @@ class _MedScreenState extends State<MedScreen> {
               children: [
                 Image.asset(
                   'assets/logo.png',
-                  height: 40, // Slightly larger logo
+                  height: 40, 
                 ),
                 const Text(
                   "Medical Reports",
                   style: TextStyle(
                     fontSize: 22,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF0D244A), // Primary Color
+                    color: Color(0xFF0D244A), 
                   ),
                 ),
                 ElevatedButton.icon(
@@ -140,7 +140,7 @@ class _MedScreenState extends State<MedScreen> {
                   icon: const Icon(Icons.upload_file, size: 20),
                   label: const Text('Upload'),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFF1AA8F), // Soft Orange
+                    backgroundColor: const Color(0xFFF1AA8F), 
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(
                       horizontal: 16,
@@ -152,7 +152,6 @@ class _MedScreenState extends State<MedScreen> {
             ),
             const SizedBox(height: 10),
 
-            // List of Files
             Expanded(
               child:
                   files.isEmpty
@@ -255,13 +254,14 @@ class _MedScreenState extends State<MedScreen> {
       bottomNavigationBar: BottomNavBar(
         onScanPressed: navigateToScanScreen,
         onHomePressed: () => Navigator.pushNamed(context, '/home'),
-        onProfilePressed: () => null,
+        onMedPressed: () => Navigator.pushNamed(context, '/med'),
+        onChatPressed: () => Navigator.pushNamed(context, '/chat'),
         onLogoutPressed: () => Navigator.pushNamed(context, '/login'),
       ),
 
       floatingActionButton: FloatingActionButton(
         shape: const CircleBorder(),
-        backgroundColor: const Color(0xFFF1AA8F), // Soft Orange
+        backgroundColor: const Color(0xFFF1AA8F), 
         child: const Icon(Icons.qr_code_scanner, color: Colors.white, size: 30),
         onPressed: navigateToScanScreen,
       ),

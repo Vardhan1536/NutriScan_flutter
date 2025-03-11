@@ -166,7 +166,8 @@ class HomeScreen extends StatelessWidget {
       bottomNavigationBar: BottomNavBar(
         onScanPressed: () => Navigator.pushNamed(context, '/scan'),
         onHomePressed: () => Navigator.pushNamed(context, '/home'),
-        onProfilePressed: () => Navigator.pushNamed(context, '/med'),
+        onMedPressed: () => Navigator.pushNamed(context, '/med'),
+        onChatPressed: () => Navigator.pushNamed(context, '/chat'),
         onLogoutPressed: () => Navigator.pushNamed(context, '/login'),
       ),
 
